@@ -1,21 +1,26 @@
-import { Component } from '@angular/core';
-import {FormControl, FormGroup, Validators} from '@angular/forms';
+import {Component, OnInit} from '@angular/core';
+import {FormBuilder, FormControl, FormGroup} from '@angular/forms';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'input-for-numbers';
-  // TODO: продолжить разработку form group
-  public nestedForm: FormGroup;
+  firstForm: FormGroup;
 
   constructor() {
-    this.nestedForm = new FormGroup({
-      inputControl: new FormControl(2),
-      minValue: new FormControl(0),
-      maxValue: new FormControl(5),
+  }
+
+  ngOnInit(): void {
+    this.firstForm = new FormGroup({
+      formGroup: new FormGroup({
+        minValue: new FormControl(3),
+        maxValue: new FormControl(7),
+        inputControl: new FormControl(5)
+      })
     });
   }
+
 }

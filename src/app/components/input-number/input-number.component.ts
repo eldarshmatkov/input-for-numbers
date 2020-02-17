@@ -1,5 +1,5 @@
 import {Component, forwardRef, Input, OnDestroy, OnInit} from '@angular/core';
-import {ControlValueAccessor, FormControl, FormGroup, NG_VALUE_ACCESSOR} from '@angular/forms';
+import {ControlValueAccessor, FormBuilder, FormControl, FormGroup, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {Subscription} from 'rxjs';
 
 @Component({
@@ -16,48 +16,38 @@ import {Subscription} from 'rxjs';
 })
 
 export class InputNumberComponent implements ControlValueAccessor, OnDestroy, OnInit {
-  value: number;
+  value = 0;
+  inputControl = 'inputControl';
 
   minValue: number;
   maxValue: number;
 
+  formGroup: FormGroup;
   subscription: Subscription;
 
-  public nestedForm: FormGroup;
-
-  constructor() {
+  constructor(private fb: FormBuilder) {
+    this.formGroup = fb.group({
+      minValue: [''],
+      maxValue: [''],
+      inputControl: [''],
+    });
   }
 
   private onChange = () => {};
   private onTouched = () => {};
 
-  get getInputValue(): number {
-    return this.nestedForm.get('inputControl').value;
-  }
-
-  get getMinValue(): number {
-    return this.nestedForm.get('minValue').value;
-  }
-
-  get getMaxValue(): number {
-    return this.nestedForm.get('maxValue').value;
-  }
-
   ngOnInit() {
-    this.nestedForm = new FormGroup({
-      inputControl: new FormControl(),
-      minValue: new FormControl(),
-      maxValue: new FormControl(),
-    });
-    /*    this.subscription = this.formControl.valueChanges
-          .subscribe((v) => {
-            if (v) {
-              this.value = v;
-            } else {
-              this.value = 0;
-            }
-            this.emitChanges();
-          });*/
+    this.subscription = this.formGroup.controls[this.inputControl].valueChanges
+      .subscribe((v) => {
+        if (v) {
+          this.value = v;
+          this.rewriteValue(v);
+        } else {
+          this.value = 0;
+          this.rewriteValue(0);
+        }
+        this.emitChanges();
+      });
   }
 
   ngOnDestroy() {
@@ -65,12 +55,19 @@ export class InputNumberComponent implements ControlValueAccessor, OnDestroy, On
   }
 
   writeValue(val) {
-    console.log(val);
-    this.nestedForm.get('inputControl').setValue(val, {emitEvent: false});
+    this.formGroup.setValue(val, {emitEvent: false});
   }
 
-  registerOnChange(fn) {
-    this.onChange = fn;
+  rewriteValue(val) {
+    this.writeValue({inputControl: val, minValue: this.minValue, maxValue: this.maxValue});
+  }
+
+  registerOnChange(fn: (value: any) => void) {
+    const minValue = 'minValue';
+    const maxValue = 'maxValue';
+    this.value = this.formGroup.controls[this.inputControl].value;
+    this.minValue = this.formGroup.controls[minValue].value;
+    this.maxValue = this.formGroup.controls[maxValue].value;
   }
 
   registerOnTouched(fn) {
@@ -78,40 +75,24 @@ export class InputNumberComponent implements ControlValueAccessor, OnDestroy, On
   }
 
   inputValuePlus() {
-    this.setValues();
-    this.writeValue(this.value++);
+    this.rewriteValue(this.value++);
     this.emitChanges();
   }
 
   inputValueMinus() {
-    this.setValues();
-    this.writeValue(this.value--);
+    this.rewriteValue(this.value--);
     this.emitChanges();
-  }
-
-  setValues() {
-    if (!this.value) {
-      this.value = this.getInputValue;
-    }
-    if (!this.minValue) {
-      this.minValue = this.getMinValue;
-    }
-    if (!this.maxValue) {
-      this.maxValue = this.getMaxValue;
-    }
-
-
   }
 
   emitChanges() {
     if (this.value > this.maxValue) {
       this.value = this.maxValue;
-      this.writeValue(this.maxValue);
+      this.rewriteValue(this.maxValue);
     } else if (this.value < this.minValue) {
       this.value = this.minValue;
-      this.writeValue(this.minValue);
+      this.rewriteValue(this.minValue);
     } else {
-      this.writeValue(this.value);
+      this.rewriteValue(this.value);
     }
   }
 }

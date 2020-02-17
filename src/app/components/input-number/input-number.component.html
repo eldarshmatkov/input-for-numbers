@@ -1,9 +1,5 @@
-  <div class="input-number-wrapper" [formGroup]="nestedForm">
+  <div class="input-number-wrapper" [formGroup]="formGroup">
     <button class="btn" (click)="inputValueMinus()">-</button>
-    <input type="hidden" formControlName="minValue">
-    <input type="hidden" formControlName="maxValue">
     <input type="number" formControlName="inputControl">
     <button class="btn" (click)="inputValuePlus()">+</button>
   </div>
-
-  {{nestedForm.value | json }}
